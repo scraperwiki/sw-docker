@@ -1,0 +1,33 @@
+from base
+
+maintainer Peter Waller
+
+run dpkg-divert --local --rename --add /sbin/initctl
+run ln -s /bin/true /sbin/initctl
+
+run mkdir /sw
+
+run apt-get update
+run apt-get upgrade
+
+run apt-get install -y git
+run apt-get install -y openssh-server
+
+run git clone git://github.com/scraperwiki/custard /sw/custard
+run git clone git://github.com/scraperwiki/cobalt /sw/cobalt
+
+run apt-get install -yy nodejs npm
+
+run mkdir /var/run/sshd
+
+run useradd $(whoami)
+run mkdir -p /home/$(whoami)/.ssh
+
+run echo "$(cat ~/.ssh/*.pub)" > /home/$(whoami)/.ssh/authorized_keys 
+
+cmd ["/usr/sbin/sshd", "-D"]
+
+
+expose 8080
+expose 2222:22
+
