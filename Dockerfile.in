@@ -1,33 +1,48 @@
+# Note: this file is \"sh-emplated\", so quotes need to be escaped.
+
 from base
 
 maintainer Peter Waller
 
+# Workaround for upstart
 run dpkg-divert --local --rename --add /sbin/initctl
 run ln -s /bin/true /sbin/initctl
 
-run mkdir /sw
-
+# Install software
 run apt-get update
 run apt-get upgrade
 
-run apt-get install -y git
-run apt-get install -y openssh-server
+run apt-get install -yy openssh-server git nodejs npm
+run apt-get install -yy mongodb-server redis-server
 
-run git clone git://github.com/scraperwiki/custard /sw/custard
-run git clone git://github.com/scraperwiki/cobalt /sw/cobalt
-
-run apt-get install -yy nodejs npm
-
+# Needed for sshd
 run mkdir /var/run/sshd
 
-run useradd $(whoami)
-run mkdir -p /home/$(whoami)/.ssh
+# Fix sudo to not warn for unknown hostname
+run echo 127.0.0.1 scraperwiki-$(hostname) >> /etc/hosts
 
+# Setup a user account for the user making the docker file
+run echo %sudo     ALL = NOPASSWD: ALL >> /etc/sudoers
+run useradd --shell /bin/bash --groups sudo $(whoami)
+run rm /etc/motd
+run mkdir -p /home/$(whoami)/.ssh
+run touch /home/$(whoami)/.hushlogin
+run chown $(whoami):users -R /home/$(whoami)
 run echo "$(cat ~/.ssh/*.pub)" > /home/$(whoami)/.ssh/authorized_keys 
 
-cmd ["/usr/sbin/sshd", "-D"]
+run mkdir /sw
 
+# Add commands should come at the end since they involve
+# making a fresh image every time
 
-expose 8080
+add ./cobalt /sw/cobalt/
+add ./custard /sw/custard/
+
+add bashrc /home/$(whoami)/.bashrc
+add profile /home/$(whoami)/.profile
+
+expose 8080:80
 expose 2222:22
 
+# upstart won't work so can't use "start ssh":
+cmd [\"/usr/sbin/sshd\", \"-D\"]
