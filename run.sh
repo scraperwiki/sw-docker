@@ -8,7 +8,7 @@ export DOCKER_HOST_IF="$(ip address show docker0 | sed -r -n 's|^.*inet (.*)/.*$
 # TODO: Later versions of NPM have a list of CAs..
 #NPM_CA="$(npm config --global get ca | sed "s| ]|, '$(sed ':a;N;$!ba;s/\n/\\\\n/g' ./mitm-ca.crt)' ]|g")"
 
-NPM_CA="$(sed ':a;N;$!ba;s/\n/\\\\\\\\n/g' ./mitm-ca.crt)"
+NPM_CA="$(sed ':a;N;$!ba;s/\n/\\\\\\\\n/g' ./local/mitm-ca.crt)"
 
 # TODO: transparent proxy hijacking
 

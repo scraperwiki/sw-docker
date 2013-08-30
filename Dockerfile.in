@@ -18,27 +18,37 @@ run apt-get install -yy nodejs npm
 
 run apt-get install -yy git
 
+# Install revent version of node
+run wget http://nodejs.org/dist/v0.10.17/node-v0.10.17-linux-x64.tar.gz --output-document=/root/node.tar.gz
+run mkdir -p /sw/node
+run tar vxf /root/node.tar.gz --strip-components=1 --directory=/sw/node
+run echo export PATH=\\\"/sw/node/bin:$PATH\\\" >> /etc/profile
+
 # Needed for sshd
 run mkdir /var/run/sshd
+
+# Help my netbook when it has a crappy connection by not waiting on DNS
+run echo UseDNS no >> /etc/ssh/sshd_config
+
+# Allow sudo group to sudo without a password
+run echo %sudo     ALL = NOPASSWD: ALL >> /etc/sudoers
+
+# Don't use secure_path
+run sed -i 's/Defaults       secure_path/#Defaults       secure_path/g' /etc/sudoers
+
+# SW-BASE
 
 # Fix sudo to not warn for unknown hostname
 run echo 127.0.0.1 scraperwiki-$(hostname) >> /etc/hosts
 run echo ${DOCKER_HOST_IF} docker-host >> /etc/hosts
 
 # Setup a user account for the user making the docker file
-run echo %sudo     ALL = NOPASSWD: ALL >> /etc/sudoers
-run sed -i 's/Defaults       secure_path/#Defaults       secure_path/g' /etc/sudoers
 run useradd --shell /bin/bash --groups sudo $(whoami)
 run rm /etc/motd
 run mkdir -p /home/$(whoami)/.ssh
 run touch /home/$(whoami)/.hushlogin
 run chown $(whoami):users -R /home/$(whoami)
 run echo "$(cat ~/.ssh/*.pub)" > /home/$(whoami)/.ssh/authorized_keys 
-
-run mkdir /sw
-
-# Help my netbook when it has a crappy connection
-run echo UseDNS no >> /etc/ssh/sshd_config
 
 # (see man update-ca-certificates)
 run echo '"$(sed ':a;N;$!ba;s/\n/\\n/g' ./mitm-ca.crt)"' > /usr/local/share/ca-certificates/mitm-ca.crt
@@ -47,20 +57,13 @@ run update-ca-certificates
 run echo "ca = \\\"${NPM_CA}\\\"" >> /etc/npmrc
 run sed -i 's/--newline--/\\n/g' /etc/npmrc
 
-# Install node
-run wget http://nodejs.org/dist/v0.10.17/node-v0.10.17-linux-x64.tar.gz --output-document=/root/node.tar.gz
-run mkdir -p /sw/node
-run tar vxf /root/node.tar.gz --strip-components=1 --directory=/sw/node
-run echo export PATH=\\\"/sw/node/bin:$PATH\\\" >> /etc/profile
-
 # Add commands should come at the end since they involve
 # making a fresh image every time
 
-add ./cobalt /sw/cobalt/
-add ./custard /sw/custard/
+add ./sw /sw/
 
-add bashrc /home/$(whoami)/.bashrc
-add profile /home/$(whoami)/.profile
+add local/bashrc /home/$(whoami)/.bashrc
+add local/profile /home/$(whoami)/.profile
 
 expose 8080:80
 expose 2222:22
