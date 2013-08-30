@@ -35,38 +35,3 @@ run echo %sudo     ALL = NOPASSWD: ALL >> /etc/sudoers
 
 # Don't use secure_path
 run sed -i 's/Defaults       secure_path/#Defaults       secure_path/g' /etc/sudoers
-
-# SW-BASE
-
-# Fix sudo to not warn for unknown hostname
-run echo 127.0.0.1 scraperwiki-$(hostname) >> /etc/hosts
-run echo ${DOCKER_HOST_IF} docker-host >> /etc/hosts
-
-# Setup a user account for the user making the docker file
-run useradd --shell /bin/bash --groups sudo $(whoami)
-run rm /etc/motd
-run mkdir -p /home/$(whoami)/.ssh
-run touch /home/$(whoami)/.hushlogin
-run chown $(whoami):users -R /home/$(whoami)
-run echo "$(cat ~/.ssh/*.pub)" > /home/$(whoami)/.ssh/authorized_keys 
-
-# (see man update-ca-certificates)
-run echo '"$(sed ':a;N;$!ba;s/\n/\\n/g' ./mitm-ca.crt)"' > /usr/local/share/ca-certificates/mitm-ca.crt
-run update-ca-certificates
-
-run echo "ca = \\\"${NPM_CA}\\\"" >> /etc/npmrc
-run sed -i 's/--newline--/\\n/g' /etc/npmrc
-
-# Add commands should come at the end since they involve
-# making a fresh image every time
-
-add ./sw /sw/
-
-add local/bashrc /home/$(whoami)/.bashrc
-add local/profile /home/$(whoami)/.profile
-
-expose 8080:80
-expose 2222:22
-
-# upstart won't work so can't use "start ssh":
-cmd [\"/usr/sbin/sshd\", \"-D\"]

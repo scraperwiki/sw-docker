@@ -4,21 +4,19 @@ set -e -u
 
 export DOCKER_HOST_IF="$(ip address show docker0 | sed -r -n 's|^.*inet (.*)/.*$|\1|gp')"
 
-
 # TODO: Later versions of NPM have a list of CAs..
 #NPM_CA="$(npm config --global get ca | sed "s| ]|, '$(sed ':a;N;$!ba;s/\n/\\\\n/g' ./mitm-ca.crt)' ]|g")"
 
 NPM_CA="$(sed ':a;N;$!ba;s/\n/\\\\\\\\n/g' ./local/mitm-ca.crt)"
 
-# TODO: transparent proxy hijacking
-
-
-eval echo \""$(cat Dockerfile.in)"\" > Dockerfile
+for img in imgs/sw-base imgs/sw
+do
+  eval echo \""$(cat ${img}/Dockerfile.in)"\" > ${img}/Dockerfile
+  (cd $img && time docker build -t "$(basename ${img})" .)
+done
 
 # transparent proxy for all docker containers
-#sudo iptables -t nat -A PREROUTING -i docker0 -p tcp --dport 80 -j REDIRECT --to-port 3128
-
-time docker build -t sw .
+sudo iptables -t nat -A PREROUTING -i docker0 -p tcp --dport 80 -j REDIRECT --to-port 3128
 
 RUNARGS="-h scraperwiki-$(hostname) "
 #RUNARGS="$RUNARGS -v ./custard:/sw/custard "
