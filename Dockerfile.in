@@ -27,6 +27,7 @@ run echo ${DOCKER_HOST_IF} docker-host >> /etc/hosts
 
 # Setup a user account for the user making the docker file
 run echo %sudo     ALL = NOPASSWD: ALL >> /etc/sudoers
+run sed -i 's/Defaults       secure_path/#Defaults       secure_path/g' /etc/sudoers
 run useradd --shell /bin/bash --groups sudo $(whoami)
 run rm /etc/motd
 run mkdir -p /home/$(whoami)/.ssh
