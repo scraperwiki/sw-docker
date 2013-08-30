@@ -47,6 +47,12 @@ run update-ca-certificates
 run echo "ca = \\\"${NPM_CA}\\\"" >> /etc/npmrc
 run sed -i 's/--newline--/\\n/g' /etc/npmrc
 
+# Install node
+run wget http://nodejs.org/dist/v0.10.17/node-v0.10.17-linux-x64.tar.gz --output-document=/root/node.tar.gz
+run mkdir -p /sw/node
+run tar vxf /root/node.tar.gz --strip-components=1 --directory=/sw/node
+run echo export PATH=\\\"/sw/node/bin:$PATH\\\" >> /etc/profile
+
 # Add commands should come at the end since they involve
 # making a fresh image every time
 
