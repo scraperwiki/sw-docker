@@ -1,3 +1,5 @@
+#! /bin/bash
+# above shebang is for syntax highlighting only. This file is shemplated.
 # Note: this file is \"sh-emplated\", so quotes need to be escaped.
 
 from base
@@ -14,7 +16,8 @@ run apt-get upgrade
 
 run apt-get install -yy openssh-server mongodb-server redis-server
 run apt-get install -yy python-pip
-run apt-get install -yy nodejs npm
+# Note: we install node to /sw without a package manager.
+# run apt-get install -yy nodejs npm
 
 run apt-get install -yy git
 
@@ -22,7 +25,7 @@ run apt-get install -yy git
 run wget http://nodejs.org/dist/v0.10.17/node-v0.10.17-linux-x64.tar.gz --output-document=/root/node.tar.gz
 run mkdir -p /sw/node
 run tar vxf /root/node.tar.gz --strip-components=1 --directory=/sw/node
-run echo export PATH=\\\"/sw/node/bin:$PATH\\\" >> /etc/profile
+run echo export PATH=\\\"/sw/node/bin:\\\$PATH\\\" >> /etc/profile
 
 # Needed for sshd
 run mkdir /var/run/sshd
@@ -34,4 +37,4 @@ run echo UseDNS no >> /etc/ssh/sshd_config
 run echo %sudo     ALL = NOPASSWD: ALL >> /etc/sudoers
 
 # Don't use secure_path
-run sed -i 's/Defaults       secure_path/#Defaults       secure_path/g' /etc/sudoers
+run sed -i 's/Defaults\tsecure_path/#Defaults\tsecure_path/g' /etc/sudoers

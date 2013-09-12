@@ -1,3 +1,6 @@
+#! /bin/bash
+# above shebang is for syntax highlighting only. This file is shemplated.
+
 from sw-base
 
 # Fix sudo to not warn for unknown hostname
@@ -16,8 +19,11 @@ run echo "$(cat ~/.ssh/*.pub)" > /home/$(whoami)/.ssh/authorized_keys
 run echo '"$(sed ':a;N;$!ba;s/\n/\\n/g' local/mitm-ca.crt)"' > /usr/local/share/ca-certificates/mitm-ca.crt
 run update-ca-certificates
 
-run echo "ca = \\\"${NPM_CA}\\\"" >> /etc/npmrc
-run sed -i 's/--newline--/\\n/g' /etc/npmrc
+run mkdir -p /sw/node/etc/
+run echo "ca = \\\"${NPM_CA}\\\"" >> /sw/node/etc/npmrc
+run sed -i 's/--newline--/\\n/g' /sw/node/etc/npmrc
+
+run apt-get install -yy python-cairo python-poppler ipython
 
 # Add commands should come at the end since they involve
 # making a fresh image every time

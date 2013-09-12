@@ -16,7 +16,7 @@ do
 done
 
 # transparent proxy for all docker containers
-sudo iptables -t nat -A PREROUTING -i docker0 -p tcp --dport 80 -j REDIRECT --to-port 3128
+# sudo iptables -t nat -A PREROUTING -i docker0 -p tcp --dport 80 -j REDIRECT --to-port 3128
 
 RUNARGS="-h scraperwiki-$(hostname) "
 #RUNARGS="$RUNARGS -v ./custard:/sw/custard "

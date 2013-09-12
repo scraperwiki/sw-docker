@@ -9,5 +9,5 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 [ -e ${HOME}/.bashrc ] && ln -sf ${HOME}/.bashrc $DIR/bashrc || touch bashrc
 
 # Generate CA certificate for MITM'ing the container
-genpkey -out mitm-ca.key -pkeyopt rsa_keygen_bits:4096
+openssl genpkey -algorithm rsa -out mitm-ca.key -pkeyopt rsa_keygen_bits:4096
 openssl req -new -x509 -days 365 -key mitm-ca.key -out mitm-ca.crt
