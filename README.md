@@ -3,8 +3,8 @@ Docker from scraperwiki
 
 Minimal instructions:
 
-	0. (First time) Run ./init.sh
-	1. Run ./run.sh
+ 0. (First time) Run ./init.sh
+ 1. Run ./run.sh
 
 If it's working, you'll drop into a container by ssh'ing to it.
 
@@ -34,3 +34,16 @@ There are two images:
 They are called `.in` because these files are "sh-templated", that is, they're
 eval'ed by bash so that various things (such as the hostname, certificates and
 authorized keys) can be personalized.
+
+Transparent http(s) man-in-the-middle cache
+-------------------------------------------
+
+You may be interested in directing all http(s) traffic to
+[httpcache](http://github.com/pwaller/httpcache).
+
+Note: this will MITM all docker containers.
+
+```
+sudo iptables -t nat -A PREROUTING -i docker0 -p tcp --dport 80 -j REDIRECT --to-port 3128
+sudo iptables -t nat -A PREROUTING -i docker0 -p tcp --dport 443 -j REDIRECT --to-port 3192
+```
