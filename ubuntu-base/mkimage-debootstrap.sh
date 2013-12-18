@@ -142,14 +142,22 @@ if [ -z "$strictDebootstrap" ]; then
 	#  this forces dpkg not to call sync() after package extraction and speeds up install
 	#    the benefit is huge on spinning disks, and the penalty is nonexistent on SSD or decent server virtualization
 	echo 'force-unsafe-io' | sudo tee etc/dpkg/dpkg.cfg.d/02apt-speedup > /dev/null
-	#  we want to effectively run "apt-get clean" after every install to keep images small
-	echo 'DPkg::Post-Invoke {"/bin/rm -f /var/cache/apt/archives/*.deb || true";};' | sudo tee etc/apt/apt.conf.d/no-cache > /dev/null
+	#  we want to effectively run "apt-get clean" after every install to keep images small (see output of "apt-get clean -s" for context)
+	{
+		aptGetClean='rm -f /var/cache/apt/archives/*.deb /var/cache/apt/archives/partial/*.deb /var/cache/apt/*.bin || true'
+		echo 'DPkg::Post-Invoke { "'$aptGetClean'"; };'
+		echo 'APT::Update::Post-Invoke { "'$aptGetClean'"; };'
+		echo 'Dir::Cache::pkgcache ""; Dir::Cache::srcpkgcache "";'
+	} | sudo tee etc/apt/apt.conf.d/no-cache > /dev/null
+	#  and remove the translations, too
+	echo 'Acquire::Languages "none";' | sudo tee etc/apt/apt.conf.d/no-languages > /dev/null
 	
 	# helpful undo lines for each the above tweaks (for lack of a better home to keep track of them):
 	#  rm /usr/sbin/policy-rc.d
 	#  rm /sbin/initctl; dpkg-divert --rename --remove /sbin/initctl
 	#  rm /etc/dpkg/dpkg.cfg.d/02apt-speedup
 	#  rm /etc/apt/apt.conf.d/no-cache
+	#  rm /etc/apt/apt.conf.d/no-languages
 	
 	if [ -z "$skipDetection" ]; then
 		# see also rudimentary platform detection in hack/install.sh
@@ -192,7 +200,7 @@ if [ "$justTar" ]; then
 	sudo tar --numeric-owner -caf "$repo" .
 else
 	# create the image (and tag $repo:$suite)
-	sudo tar --numeric-owner -c . | $docker import - $repo $suite
+	sudo tar --numeric-owner -c . | $docker import - $repo:$suite
 	
 	# test the image
 	$docker run -i -t $repo:$suite echo success
@@ -202,25 +210,25 @@ else
 			Debian)
 				if [ "$suite" = "$debianStable" -o "$suite" = 'stable' ] && [ -r etc/debian_version ]; then
 					# tag latest
-					$docker tag $repo:$suite $repo latest
+					$docker tag $repo:$suite $repo:latest
 					
 					if [ -r etc/debian_version ]; then
 						# tag the specific debian release version (which is only reasonable to tag on debian stable)
 						ver=$(cat etc/debian_version)
-						$docker tag $repo:$suite $repo $ver
+						$docker tag $repo:$suite $repo:$ver
 					fi
 				fi
 				;;
 			Ubuntu)
 				if [ "$suite" = "$ubuntuLatestLTS" ]; then
 					# tag latest
-					$docker tag $repo:$suite $repo latest
+					$docker tag $repo:$suite $repo:latest
 				fi
 				if [ -r etc/lsb-release ]; then
 					lsbRelease="$(. etc/lsb-release && echo "$DISTRIB_RELEASE")"
 					if [ "$lsbRelease" ]; then
 						# tag specific Ubuntu version number, if available (12.04, etc.)
-						$docker tag $repo:$suite $repo $lsbRelease
+						$docker tag $repo:$suite $repo:$lsbRelease
 					fi
 				fi
 				;;
