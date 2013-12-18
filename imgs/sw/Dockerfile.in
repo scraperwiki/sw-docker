@@ -3,12 +3,16 @@
 
 from sw-base
 
+# Let's put some installation up top.
+# TODO(pwaller): uncomment this
+# run apt-get install -yy python-cairo python-poppler ipython
+
 # Fix sudo to not warn for unknown hostname
 run echo 127.0.0.1 scraperwiki-$(hostname) >> /etc/hosts
 run echo ${DOCKER_HOST_IF} docker-host >> /etc/hosts
 
 # Setup a user account for the user making the docker file
-run useradd --shell /bin/bash --groups sudo $(whoami)
+run useradd --uid "${EUID}" --shell /bin/bash --groups sudo $(whoami)
 run rm /etc/motd
 run mkdir -p /home/$(whoami)/.ssh
 run touch /home/$(whoami)/.hushlogin
@@ -22,8 +26,6 @@ run update-ca-certificates
 run mkdir -p /sw/node/etc/
 run echo "ca = \\\"${NPM_CA}\\\"" >> /sw/node/etc/npmrc
 run sed -i 's/--newline--/\\n/g' /sw/node/etc/npmrc
-
-run apt-get install -yy python-cairo python-poppler ipython
 
 # Add commands should come at the end since they involve
 # making a fresh image every time

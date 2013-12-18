@@ -18,11 +18,13 @@ done
 # transparent proxy for all docker containers
 # sudo iptables -t nat -A PREROUTING -i docker0 -p tcp --dport 80 -j REDIRECT --to-port 3128
 
-RUNARGS="-h scraperwiki-$(hostname) "
+RUNARGS=("-h" "scraperwiki-$(hostname)")
+RUNARGS+=("-v" "$PWD:/home/$(whoami)/sw-docker" )
+RUNARGS+=("-privileged=true")
 #RUNARGS="$RUNARGS -v ./custard:/sw/custard "
 #RUNARGS="$RUNARGS -v ./cobalt:/sw/cobalt"
 
-ID="$(docker run $RUNARGS -d sw)"
+ID="$(docker run "${RUNARGS[@]}" -d sw)"
 
 trap cleanup EXIT
 

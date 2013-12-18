@@ -16,6 +16,7 @@ run apt-get upgrade
 
 run apt-get install -yy openssh-server mongodb-server redis-server
 run apt-get install -yy python-pip
+run apt-get install -yy vim
 # Note: we install node to /sw without a package manager.
 # run apt-get install -yy nodejs npm
 
