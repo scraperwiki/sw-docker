@@ -1,12 +1,18 @@
-from scraperwiki/base:precise
+FROM scraperwiki/base:precise
 
-env DEBIAN_FRONTEND noninteractive
-env GOPATH /usr
+ENV DEBIAN_FRONTEND noninteractive
+ENV GOPATH /usr
 
-# run apt-get update
-# run apt-get upgrade -y
+RUN echo deb http://archive.ubuntu.com/ubuntu precise universe > /etc/apt/sources.list.d/universe.list
 
-add go_1.2-godeb1_amd64.deb /
+RUN apt-get update -qq
+RUN apt-get install -qqy iptables ca-certificates lxc netcat wget curl git htop less vim lsof
 
-run dpkg -i /go_1.2-godeb1_amd64.deb
+ADD ./dind /usr/local/bin/dind
+ADD ./docker-latest /usr/local/bin/docker
 
+ADD go_1.2-godeb1_amd64.deb /tmp/go_1.2-godeb1_amd64.deb
+RUN dpkg -i /tmp/go_1.2-godeb1_amd64.deb
+RUN rm /tmp/go_1.2-godeb1_amd64.deb
+
+VOLUME /var/lib/docker
